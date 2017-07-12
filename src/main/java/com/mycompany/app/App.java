@@ -1,5 +1,6 @@
 package com.mycompany.app;
 
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -10,8 +11,28 @@ import java.util.Random;
 
 public final class App {
 
-    public static void main(String... args) throws InterruptedException, ParseException {
-                
+    public static void main(String... args) throws InterruptedException, ParseException, IOException {
+
+        do { //one iteration of the do/while loop equates to one day
+
+            System.out.println(JsonHandler.matchesToday());
+            Thread.sleep(timeUntil(1, 0, 0));
+            Thread.sleep(timeUntil(0, firstOfDay()[0], firstOfDay()[1]));
+            
+            for (String[] row : matchesToday()) {
+                produceImage(findScore(row));
+            }
+            
+            tweet();
+            
+            Thread.sleep(timeUntil(0, 23, 55));
+            
+            summary();
+            
+        } while (true);
+    }
+    
+    public static void odds(){
         int[] odds = {581, 286, 182};
         int[] oddInterval = new int[odds.length];
         Random rand = new Random();
@@ -30,24 +51,6 @@ public final class App {
                 break;
             }
         }
-
-
-        do { //one iteration of the do/while loop equates to one day
-
-            Thread.sleep(timeUntil(1, 0, 0));
-            Thread.sleep(timeUntil(0, firstOfDay()[0], firstOfDay()[1]));
-            
-            for (String[] row : matchesToday()) {
-                produceImage(findScore(row));
-            }
-            
-            tweet();
-            
-            Thread.sleep(timeUntil(0, 23, 55));
-            
-            summary();
-            
-        } while (true);
     }
 
     public static long timeUntil(int daysFromNow, int hourOfDay, int minute) {
