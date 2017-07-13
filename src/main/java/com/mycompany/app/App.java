@@ -15,24 +15,36 @@ public final class App {
 
         do { //one iteration of the do/while loop equates to one day
 
-            System.out.println(JsonHandler.matchesToday());
+            //System.out.println("Function output: " + JsonHandler.matchesToday(Calendar.getInstance().get(Calendar.YEAR) + "-" + Calendar.getInstance().get(Calendar.MONTH) + "-" + Calendar.getInstance().get(Calendar.DAY_OF_WEEK)));
+            
+            List<String[]> matchesToday = JsonHandler.matchesToday("2018-01-01");
+            
+            System.out.println("size(): " + matchesToday.size());
+            
+            for (int i = 0; i < matchesToday.size(); i++) {
+                System.out.println("i length: " + matchesToday.get(i).length);
+                for (int j = 0; j < matchesToday.get(i).length; j++) {
+                    System.out.println("i: " + i + " j: " + j + " " + matchesToday.get(i)[j]);
+                }
+            }
+
             Thread.sleep(timeUntil(1, 0, 0));
             Thread.sleep(timeUntil(0, firstOfDay()[0], firstOfDay()[1]));
-            
+
             for (String[] row : matchesToday()) {
                 produceImage(findScore(row));
             }
-            
+
             tweet();
-            
+
             Thread.sleep(timeUntil(0, 23, 55));
-            
+
             summary();
-            
+
         } while (true);
     }
-    
-    public static void odds(){
+
+    public static void odds() {
         int[] odds = {581, 286, 182};
         int[] oddInterval = new int[odds.length];
         Random rand = new Random();
@@ -67,16 +79,15 @@ public final class App {
     }
 
     public static int[] firstOfDay() throws ParseException, InterruptedException {
-        //go through JSON finding first with same day_of_month, month & year as today
+        //go through JSON finding first with same day_of_month, month & year as Calendar.getInstance()
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd'T'HH:mm:ss");
         String date = "2017-08-12T14:00:00Z";
         Date dateSubstring = dateFormat.parse(date.substring(0, date.length() - 1));
         int hour = 0;
-        
-        if(Calendar.getInstance().getTimeZone().useDaylightTime()){
+
+        if (Calendar.getInstance().getTimeZone().useDaylightTime()) {
             hour = dateSubstring.getHours();
-        }
-        else{
+        } else {
             hour = dateSubstring.getHours() - 1;
         }
         int minute = dateSubstring.getDate();

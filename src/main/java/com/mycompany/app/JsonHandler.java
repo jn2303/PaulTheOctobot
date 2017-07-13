@@ -5,13 +5,13 @@
  */
 package com.mycompany.app;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 import javax.json.Json;
 import javax.json.JsonArray;
@@ -26,14 +26,15 @@ public class JsonHandler {
 
     final static String API = "http://api.football-data.org/v1/competitions/445/fixtures";
 
-    public static List<List<String>> matchesToday() throws MalformedURLException, IOException, ParseException {
+    public static List<String[]> matchesToday(String currentDate) throws MalformedURLException, IOException, ParseException {
 
-        URL url = new URL(API);
-        Calendar today = Calendar.getInstance();
-        //String currentDate = today.get(Calendar.YEAR) + "-" + today.get(Calendar.MONTH) + "-" + today.get(Calendar.DAY_OF_WEEK);
-        String currentDate = "2018-01-01";
-        List<List<String>> matchesToday = new ArrayList<>();
-        List<String> teams = new ArrayList<>();
+        //URL url = new URL(API);
+        
+        URL url = new File("src/main/java/com/mycompany/app/newjson.json").toURI().toURL(); //TODO remove this
+        
+        System.out.println("API request");
+        
+        List<String[]> fixtures = new ArrayList<>();
 
         try (InputStream is = url.openStream(); JsonReader rdr = Json.createReader(is)) {
 
@@ -41,13 +42,12 @@ public class JsonHandler {
             JsonArray results = obj.getJsonArray("fixtures");
             results.getValuesAs(JsonObject.class).forEach((result) -> {
                 String date = result.getString("date");
-                if (date.contains(currentDate)) {
-                    teams.add(result.getString("homeTeamName"));
-                    teams.add(result.getString("awayTeamName"));    
-                    matchesToday.add(teams);
+                if (date.contains(currentDate)) { //change to currentDate
+                    fixtures.add(new String[]{result.getString("homeTeamName"), result.getString("awayTeamName")});
                 }
             });
         }
-        return matchesToday;
+        
+        return fixtures;
     }
 }
