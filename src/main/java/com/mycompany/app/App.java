@@ -2,7 +2,9 @@ package com.mycompany.app;
 
 import java.io.IOException;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Random;
 
@@ -13,37 +15,43 @@ import java.util.Random;
 public final class App {
 
     public static void main(String... args) throws InterruptedException, ParseException, IOException {
+        
+        //do { //one iteration of the do/while loop equates to one day
+            JsonHandler jsonHandlerMorning = new JsonHandler();
+            List<String[]> matchesToday = jsonHandlerMorning.matchesToday(new SimpleDateFormat("yyyy-MM-dd").format(new Date(System.currentTimeMillis())));
+            //List<String[]> matchesToday = JsonHandler.matchesToday("2017-07-13");
 
-        do { //one iteration of the do/while loop equates to one day
-
-            //List<String[]> matchesToday = JsonHandler.matchesToday(Calendar.getInstance().get(Calendar.YEAR) + "-" + Calendar.getInstance().get(Calendar.MONTH) + "-" + Calendar.getInstance().get(Calendar.DAY_OF_WEEK));
-            List<String[]> matchesToday = JsonHandler.matchesToday("2017-08-12");
-
+            //Thread.sleep(timeUntil(1, 6, 0)); //TODO enable this
             System.out.println(timeUntil(0, firstGameKO_GMT(JsonHandler.firstKOtime)[0], firstGameKO_GMT(JsonHandler.firstKOtime)[1]));
+            Thread.sleep(timeUntil(0, firstGameKO_GMT(JsonHandler.firstKOtime)[0], firstGameKO_GMT(JsonHandler.firstKOtime)[1]));
+            
+            int[] prediction = new int[matchesToday.size()];
 
             for (int i = 0; i < matchesToday.size(); i++) {
                 System.out.print("Match " + Integer.toString(i + 1) + " is " + matchesToday.get(i)[0] + " vs " + matchesToday.get(i)[1] + ". ");
 
                 double[] odds = {Double.parseDouble(matchesToday.get(i)[2]), Double.parseDouble(matchesToday.get(i)[3]), Double.parseDouble(matchesToday.get(i)[4])};
 
-                int prediction = odds(odds);
-                if (prediction == 2) {
-                    System.out.print("Prediction: Draw.\n\n");
+                prediction[i] = odds(odds);
+                if (prediction[i] == 2) {
+                    System.out.println("Prediction: Draw.");
                 } else {
-                    System.out.print("Prediction: " + matchesToday.get(i)[prediction] + " win.\n\n");
+                    System.out.println("Prediction: " + matchesToday.get(i)[prediction[i]] + " win.");
                 }
             }
 
-            Thread.sleep(timeUntil(1, 0, 0));
-            Thread.sleep(timeUntil(0, firstGameKO_GMT(JsonHandler.firstKOtime)[0], firstGameKO_GMT(JsonHandler.firstKOtime)[1]));
-
-            tweet();
-
-            Thread.sleep(timeUntil(0, 23, 55));
+            //Thread.sleep(timeUntil(0, 23, 00));
+            JsonHandler jsonHandler = new JsonHandler();
+                        
+            List<int[]> scoresToday = jsonHandler.scoresToday(new SimpleDateFormat("yyyy-MM-dd").format(new Date(System.currentTimeMillis())));
+            for (int i = 0; i < scoresToday.size(); i++) {
+                System.out.print("Match " + Integer.toString(i + 1) + " score was " + scoresToday.get(i)[0] + " - " +scoresToday.get(i)[1] + ". ");
+                System.out.print("Prediction was " + Boolean.toString(wasPredictionCorrect(prediction[i], scoresToday.get(i))) + ".\n");
+            }
 
             summary();
 
-        } while (true);
+        //} while (true);
     }
 
     public static int odds(double[] oddsDouble) {
@@ -87,25 +95,40 @@ public final class App {
     }
 
     public static int[] firstGameKO_GMT(String dateStamp) throws ParseException, InterruptedException {
-        int hour = 0;
+        int hour;
 
-        if (Calendar.getInstance().getTimeZone().useDaylightTime()) {
-            hour = Integer.parseInt(dateStamp.substring(11, 13));
+        if (Calendar.getInstance().getTime().toString().contains("BST")) {
+            hour = Integer.parseInt(dateStamp.substring(11, 13)) + 1;
         } else {
-            hour = Integer.parseInt(dateStamp.substring(11, 13)) - 1;
+            hour = Integer.parseInt(dateStamp.substring(11, 13));
         }
         int minute = Integer.parseInt(dateStamp.substring(14, 16));
         int[] time = {hour, minute};
         return time;
     }
+    
+    private static boolean wasPredictionCorrect(int prediction, int[] score){
+        switch (prediction) {
+            case 0:
+                if(score[0] > score[1]){
+                    return true;
+                }   break;
+            case 1:
+                if(score[0] < score[1]){
+                    return true;
+                }   break;
+            case 2:
+                if(score[0] == score[1]){
+                    return true;
+                }   break;
+            default:
+                break;
+        }
+        return false;
+    }
 
     public static void summary() {
         //summary to date
-    }
-
-    public static String[] findScore(String[] teams) {
-        String[] score = {"1-0"};
-        return score;
     }
 
     public static void produceImage(String[] results) {

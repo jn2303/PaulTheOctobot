@@ -23,6 +23,10 @@ import javax.json.JsonReader;
  * @author jamie
  */
 public class JsonHandler {
+    
+    public JsonHandler(){
+    
+    }
 
     final static String API = "http://api.football-data.org/v1/competitions/445/fixtures";
     final static JsonObject APIREQUEST;
@@ -33,6 +37,7 @@ public class JsonHandler {
             //URL url = new URL(API);
             URL url = new File("src/main/java/com/mycompany/app/newjson.json").toURI().toURL(); //TODO remove this
             JsonObject obj;
+            System.out.println("API Request");
 
             try (InputStream is = url.openStream(); JsonReader rdr = Json.createReader(is)) {
                 obj = rdr.readObject();
@@ -43,18 +48,33 @@ public class JsonHandler {
         }
     }
 
-    public static List<String[]> matchesToday(String currentDate) throws MalformedURLException, IOException, ParseException {
+    public List<String[]> matchesToday(String currentDate) throws MalformedURLException, IOException, ParseException {
 
-        List<String[]> fixtures = new ArrayList<>();
+        List<String[]> fixturesToday = new ArrayList<>();
+
+        JsonArray fixtures = APIREQUEST.getJsonArray("fixtures");
+        fixtures.getValuesAs(JsonObject.class).forEach((result) -> {
+            String date = result.getString("date");
+            if (firstKOtime.isEmpty()) {
+                firstKOtime = date;
+            }
+            if (date.contains(currentDate)) { //change to currentDate
+                fixturesToday.add(new String[]{result.getString("homeTeamName"), result.getString("awayTeamName"), "1.72", "4.5", "3.5"}); //homeOdds, awayOdds, drawOdds. if odds are empty, automatically assign 
+            }
+        });
+
+        return fixturesToday;
+    }
+    
+    public List<int[]> scoresToday(String currentDate) throws MalformedURLException, IOException, ParseException {
+
+        List<int[]> fixtures = new ArrayList<>();
 
         JsonArray results = APIREQUEST.getJsonArray("fixtures");
         results.getValuesAs(JsonObject.class).forEach((result) -> {
             String date = result.getString("date");
-            if (firstKOtime.equals("")) {
-                firstKOtime = date;
-            }
             if (date.contains(currentDate)) { //change to currentDate
-                fixtures.add(new String[]{result.getString("homeTeamName"), result.getString("awayTeamName"), "1.72", "4.5", "3.5"}); //homeOdds, awayOdds, drawOdds.
+                fixtures.add(new int[]{result.getJsonObject("result").getInt("goalsHomeTeam"), result.getJsonObject("result").getInt("goalsAwayTeam")}); //homeOdds, awayOdds, drawOdds. if odds are empty, automatically assign 
             }
         });
 
